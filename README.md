@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Module 13 Challenge: Candidate Search
 
 ## Your Task
@@ -156,3 +157,6 @@ You are required to submit BOTH of the following for review:
 
 ---
 © 2024 edX Boot Camps LLC. Confidential and Proprietary. All Rights Reserved.
+=======
+# candidate-search
+>>>>>>> 4f0c300d357861594ede81d5b72b788284efc4da
