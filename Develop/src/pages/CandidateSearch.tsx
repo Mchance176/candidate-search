@@ -1,24 +1,36 @@
 import { useState, useEffect } from 'react';
 import { searchGithub, searchGithubUser } from '../api/API';
+import { useCandidateContext } from '../context/CandidateContext';
 
-interface GithubUser {
+interface Candidate {
   id: number;
   login: string;
   avatar_url: string;
   html_url: string;
+  name?: string;
+  bio?: string;
+  public_repos?: number;
+  followers?: number;
 }
 
 const CandidateSearch = () => {
-  const [candidates, setCandidates] = useState<GithubUser[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { saveCandidate } = useCandidateContext();
 
   const fetchCandidates = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await searchGithub();
-      setCandidates(data);
+      const detailedCandidates = await Promise.all(
+        data.map(async (user: Candidate) => {
+          const details = await searchGithubUser(user.login);
+          return { ...user, ...details };
+        })
+      );
+      setCandidates(detailedCandidates);
     } catch (err) {
       setError('Failed to fetch candidates');
     } finally {
@@ -29,6 +41,11 @@ const CandidateSearch = () => {
   useEffect(() => {
     fetchCandidates();
   }, []);
+
+  const handleSave = (candidate: Candidate) => {
+    saveCandidate(candidate);
+    fetchCandidates(); // Fetch new candidates after saving
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -45,11 +62,15 @@ const CandidateSearch = () => {
               alt={candidate.login}
               className="w-20 h-20 rounded-full mx-auto"
             />
-            <h2 className="text-xl text-center mt-2">{candidate.login}</h2>
+            <h2 className="text-xl text-center mt-2">{candidate.name || candidate.login}</h2>
+            {candidate.bio && <p className="text-center mt-2">{candidate.bio}</p>}
+            <p className="text-center mt-2">
+              Repos: {candidate.public_repos} | Followers: {candidate.followers}
+            </p>
             <div className="flex justify-center mt-4 gap-2">
               <button 
                 className="bg-green-500 text-white px-4 py-2 rounded"
-                onClick={() => {/* TODO: Save candidate */}}
+                onClick={() => handleSave(candidate)}
               >
                 Save
               </button>

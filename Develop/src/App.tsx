@@ -1,14 +1,18 @@
-import { Outlet } from 'react-router-dom';
-import Nav from './components/Nav';
+import { CandidateProvider } from './context/CandidateContext';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import CandidateSearch from './pages/CandidateSearch';
+import SavedCandidates from './pages/SavedCandidates';
 
 function App() {
   return (
-    <>
-      <Nav />
-      <main>
-        <Outlet />
-      </main>
-    </>
+    <CandidateProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<CandidateSearch />} />
+          <Route path="/saved" element={<SavedCandidates />} />
+        </Routes>
+      </Router>
+    </CandidateProvider>
   );
 }
 
