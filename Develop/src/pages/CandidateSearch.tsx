@@ -1,88 +1,66 @@
 import { useState, useEffect } from 'react';
 import { searchGithub, searchGithubUser } from '../api/API';
 import { useCandidateContext } from '../context/CandidateContext';
-
-interface Candidate {
-  id: number;
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  name?: string;
-  bio?: string;
-  public_repos?: number;
-  followers?: number;
-}
+import CandidateCard from '../components/Candidate/CandidateCard';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
 
 const CandidateSearch = () => {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [currentCandidate, setCurrentCandidate] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { saveCandidate } = useCandidateContext();
 
-  const fetchCandidates = async () => {
+  const fetchNextCandidate = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await searchGithub();
-      const detailedCandidates = await Promise.all(
-        data.map(async (user: Candidate) => {
-          const details = await searchGithubUser(user.login);
-          return { ...user, ...details };
-        })
-      );
-      setCandidates(detailedCandidates);
+      const users = await searchGithub();
+      if (users.length > 0) {
+        const details = await searchGithubUser(users[0].login);
+        setCurrentCandidate(details);
+      } else {
+        setError('No more candidates available');
+      }
     } catch (err) {
-      setError('Failed to fetch candidates');
+      setError('Failed to fetch candidate');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCandidates();
+    fetchNextCandidate();
   }, []);
 
-  const handleSave = (candidate: Candidate) => {
+  const handleSaveCandidate = (candidate: any) => {
     saveCandidate(candidate);
-    fetchCandidates(); // Fetch new candidates after saving
+    fetchNextCandidate();
   };
 
+  const handleSkipCandidate = () => {
+    fetchNextCandidate();
+  };
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} onRetry={fetchNextCandidate} />;
+  if (!currentCandidate) return null;
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Find Candidates</h1>
-      
-      {isLoading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {candidates.map((candidate) => (
-          <div key={candidate.id} className="border p-4 rounded-lg shadow">
-            <img 
-              src={candidate.avatar_url} 
-              alt={candidate.login}
-              className="w-20 h-20 rounded-full mx-auto"
-            />
-            <h2 className="text-xl text-center mt-2">{candidate.name || candidate.login}</h2>
-            {candidate.bio && <p className="text-center mt-2">{candidate.bio}</p>}
-            <p className="text-center mt-2">
-              Repos: {candidate.public_repos} | Followers: {candidate.followers}
-            </p>
-            <div className="flex justify-center mt-4 gap-2">
-              <button 
-                className="bg-green-500 text-white px-4 py-2 rounded"
-                onClick={() => handleSave(candidate)}
-              >
-                Save
-              </button>
-              <button 
-                className="bg-gray-500 text-white px-4 py-2 rounded"
-                onClick={fetchCandidates}
-              >
-                Skip
-              </button>
-            </div>
-          </div>
-        ))}
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-center mb-8">Find Candidates</h1>
+      <div className="max-w-2xl mx-auto">
+        <CandidateCard 
+          candidate={currentCandidate}
+          onAction={handleSaveCandidate}
+          actionLabel="Save Candidate"
+        />
+        <button
+          onClick={handleSkipCandidate}
+          className="w-full mt-4 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-full transition-colors duration-200"
+        >
+          Skip Candidate
+        </button>
       </div>
     </div>
   );
