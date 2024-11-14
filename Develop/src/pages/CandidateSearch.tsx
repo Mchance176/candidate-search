@@ -4,9 +4,28 @@ import { useCandidateContext } from '../context/CandidateContext';
 import CandidateCard from '../components/Candidate/CandidateCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import SearchFilters from '../components/Search/SearchFilters';
+
+interface FilterOptions {
+  minRepos?: number;
+  minFollowers?: number;
+  location?: string;
+}
+
+interface Candidate {
+  id: number;
+  login: string;
+  avatar_url: string;
+  html_url: string;
+  name?: string;
+  bio?: string;
+  public_repos: number;
+  followers: number;
+  location?: string;
+}
 
 const CandidateSearch = () => {
-  const [currentCandidate, setCurrentCandidate] = useState<any>(null);
+  const [currentCandidate, setCurrentCandidate] = useState<Candidate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { saveCandidate } = useCandidateContext();
@@ -33,13 +52,27 @@ const CandidateSearch = () => {
     fetchNextCandidate();
   }, []);
 
-  const handleSaveCandidate = (candidate: any) => {
+  const handleSaveCandidate = (candidate: Candidate) => {
     saveCandidate(candidate);
     fetchNextCandidate();
   };
 
   const handleSkipCandidate = () => {
     fetchNextCandidate();
+  };
+
+  const handleFilterChange = (filters: FilterOptions) => {
+    if (!currentCandidate) return;
+    
+    if (filters.minRepos && currentCandidate.public_repos < filters.minRepos) {
+      fetchNextCandidate();
+    }
+    if (filters.minFollowers && currentCandidate.followers < filters.minFollowers) {
+      fetchNextCandidate();
+    }
+    if (filters.location && !currentCandidate.location?.toLowerCase().includes(filters.location.toLowerCase())) {
+      fetchNextCandidate();
+    }
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -49,6 +82,7 @@ const CandidateSearch = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-center mb-8">Find Candidates</h1>
+      <SearchFilters onFilterChange={handleFilterChange} />
       <div className="max-w-2xl mx-auto">
         <CandidateCard 
           candidate={currentCandidate}

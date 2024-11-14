@@ -1,8 +1,24 @@
 import { useCandidateContext } from '../context/CandidateContext';
 import CandidateCard from '../components/Candidate/CandidateCard';
+import ConfirmationModal from '../components/Modal/ConfirmationModal';
+import { useState } from 'react';
 
 const SavedCandidates = () => {
   const { savedCandidates, removeCandidate } = useCandidateContext();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [candidateToRemove, setCandidateToRemove] = useState<number | null>(null);
+
+  const handleRemoveClick = (candidateId: number) => {
+    setCandidateToRemove(candidateId);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (candidateToRemove) {
+      removeCandidate(candidateToRemove);
+      setCandidateToRemove(null);
+    }
+  };
 
   if (savedCandidates.length === 0) {
     return (
@@ -21,12 +37,19 @@ const SavedCandidates = () => {
           <CandidateCard 
             key={candidate.id}
             candidate={candidate}
-            onAction={() => removeCandidate(candidate.id)}
+            onAction={() => handleRemoveClick(candidate.id)}
             actionLabel="Remove"
             actionStyle="bg-red-500 hover:bg-red-600"
           />
         ))}
       </div>
+      <ConfirmationModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmRemove}
+        title="Remove Candidate"
+        message="Are you sure you want to remove this candidate?"
+      />
     </div>
   );
 };

@@ -9,6 +9,9 @@ interface CandidateCardProps {
     email?: string;
     company?: string;
     bio?: string;
+    public_repos?: number;
+    followers?: number;
+    contributions?: number;
   };
   onAction: (candidate: any) => void;
   actionLabel: string;
@@ -66,6 +69,11 @@ const CandidateCard = ({
           {actionLabel}
         </button>
       </div>
+      <CandidateStats 
+        repos={candidate.public_repos || 0}
+        followers={candidate.followers || 0}
+        contributions={candidate.contributions}
+      />
     </div>
   );
 };
