@@ -1,13 +1,30 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter as Router } from 'react-router-dom'  // Add this
-import App from './App'
-import './index.css'
+import ReactDOM from 'react-dom/client';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import './index.css';
+
+import App from './App.tsx';
+import CandidateSearch from './pages/CandidateSearch.tsx';
+import SavedCandidates from './pages/SavedCandidates.tsx';
+import ErrorPage from './pages/ErrorPage.tsx';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <App />,
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        index: true,
+        element: <CandidateSearch />,
+      },
+      {
+        path: 'saved',  // Changed from '/SavedCandidates' to 'saved'
+        element: <SavedCandidates />,
+      },
+    ],
+  },
+]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <Router>      {/* Add Router here */}
-      <App />
-    </Router>
-  </React.StrictMode>,
-)
+  <RouterProvider router={router} />
+);

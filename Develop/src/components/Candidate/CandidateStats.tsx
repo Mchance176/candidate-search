@@ -1,6 +1,5 @@
-import CandidateStats from './CandidateStats';  
+import CandidateStats from './CandidateStats';  // Update the import path
 import type { GitHubUser } from '../../api/API';
-
 
 interface CandidateCardProps {
   candidate: GitHubUser;

@@ -9,6 +9,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*", "Develop/src/components/ErrorMessage", "Develop/src/components/LoadingSpinner.tsx", "Develop/src/components/ErrorMessage.tsx"],
+  "include": ["src/**/*", "Develop/src/components/ErrorMessage", "Develop/src/components/LoadingSpinner.tsx", "Develop/src/components/ErrorMessage.tsx", "Develop/src/components/CandidateStats.tsx"],
   "exclude": ["node_modules"]
 } 

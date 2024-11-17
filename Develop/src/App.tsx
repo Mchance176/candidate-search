@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';  // Add this import
+import { Outlet } from 'react-router-dom';
 import { CandidateProvider } from './context/CandidateContext';
 import Header from './components/Layout/Header';
 
@@ -8,7 +8,7 @@ function App() {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <main className="py-6">
-          <Outlet />  {/* Replace Routes with Outlet */}
+          <Outlet />
         </main>
       </div>
     </CandidateProvider>
