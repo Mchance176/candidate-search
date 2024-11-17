@@ -118,3 +118,7 @@ tbody tr:nth-child(odd) {
   width: 80vw;
   table-layout: fixed;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

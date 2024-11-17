@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*", "Develop/src/components/ErrorMessage", "Develop/src/components/LoadingSpinner.tsx", "Develop/src/components/ErrorMessage.tsx", "Develop/src/components/CandidateStats.tsx"],
+  "exclude": ["node_modules"]
+} 
