@@ -1,152 +1,128 @@
-interface GitHubUser {
-  id: number;
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  name?: string;
-  bio?: string;
-  public_repos: number;
-  followers: number;
+import axios from 'axios';
+import type { GitHubUser, Repository, SearchResponse, RateLimit } from '../interfaces/github.types';
+
+const GITHUB_API_URL = 'https://api.github.com';
+const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
+
+// Create axios instance with default config
+const githubApi = axios.create({
+  baseURL: GITHUB_API_URL,
+  headers: {
+    Authorization: `token ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github.v3+json',
+  },
+});
+
+// Add response interceptor for rate limit handling
+githubApi.interceptors.response.use(
+  (response) => {
+    // Store remaining rate limit in localStorage
+    if (response.headers['x-ratelimit-remaining']) {
+      localStorage.setItem('github-rate-limit-remaining', 
+        response.headers['x-ratelimit-remaining']);
+      localStorage.setItem('github-rate-limit-reset',
+        response.headers['x-ratelimit-reset']);
+    }
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 403 && error.response?.data?.message?.includes('rate limit')) {
+      const resetTime = new Date(Number(error.response.headers['x-ratelimit-reset']) * 1000);
+      throw new Error(`Rate limit exceeded. Resets at ${resetTime.toLocaleTimeString()}`);
+    }
+    throw error;
+  }
+);
+
+// Check rate limit before making requests
+const checkRateLimit = async (): Promise<RateLimit> => {
+  try {
+    const response = await githubApi.get('/rate_limit');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to check rate limit:', error);
+    throw new Error('Failed to check API rate limit');
+  }
+};
+
+// Search for GitHub users
+const searchGithub = async (filters?: {
   location?: string;
-}
-
-interface GitHubError {
-  message: string;
-  documentation_url?: string;
-}
-
-/**
- * Fetches a random list of GitHub users
- * @returns Promise<GitHubUser[]>
- * @throws Error if the API request fails
- */
-const searchGithub = async (): Promise<GitHubUser[]> => {
+  language?: string;
+  followers?: number;
+  repos?: number;
+}): Promise<GitHubUser[]> => {
   try {
-    // Generate a random starting point to get different users each time
-    const start = Math.floor(Math.random() * 100000000) + 1;
-    console.log('Fetching users since ID:', start);
+    // Build search query
+    let query = 'type:user';
+    if (filters?.location) query += ` location:${filters.location}`;
+    if (filters?.language) query += ` language:${filters.language}`;
+    if (filters?.followers) query += ` followers:>=${filters.followers}`;
+    if (filters?.repos) query += ` repos:>=${filters.repos}`;
 
-    const response = await fetch(
-      `https://api.github.com/users?since=${start}&per_page=30`,
-      {
-        headers: {
-          Accept: 'application/vnd.github.v3+json',
-          Authorization: `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      const error = data as GitHubError;
-      console.error('GitHub API Error:', error);
-      throw new Error(error.message || 'Failed to fetch GitHub users');
-    }
-
-    console.log(`Successfully fetched ${data.length} users`);
-    return data as GitHubUser[];
-  } catch (error) {
-    console.error('Error in searchGithub:', error);
-    if (error instanceof Error) {
-      throw new Error(`GitHub API Error: ${error.message}`);
-    }
-    throw new Error('An unexpected error occurred while fetching users');
-  }
-};
-
-/**
- * Fetches detailed information for a specific GitHub user
- * @param username The GitHub username to fetch details for
- * @returns Promise<GitHubUser>
- * @throws Error if the API request fails
- */
-const searchGithubUser = async (username: string): Promise<GitHubUser> => {
-  try {
-    console.log('Fetching details for user:', username);
-
-    const response = await fetch(
-      `https://api.github.com/users/${username}`,
-      {
-        headers: {
-          Accept: 'application/vnd.github.v3+json',
-          Authorization: `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      const error = data as GitHubError;
-      console.error('GitHub API Error:', error);
-      throw new Error(error.message || `Failed to fetch user: ${username}`);
-    }
-
-    console.log('Successfully fetched user details for:', username);
-    return data as GitHubUser;
-  } catch (error) {
-    console.error('Error in searchGithubUser:', error);
-    if (error instanceof Error) {
-      throw new Error(`GitHub API Error: ${error.message}`);
-    }
-    throw new Error(`An unexpected error occurred while fetching user: ${username}`);
-  }
-};
-
-/**
- * Rate limit information from GitHub API
- */
-interface RateLimitResponse {
-  resources: {
-    core: {
-      limit: number;
-      used: number;
-      remaining: number;
-      reset: number;
-    };
-  };
-}
-
-/**
- * Checks the current rate limit status for the GitHub API
- * @returns Promise<RateLimitResponse>
- * @throws Error if the API request fails
- */
-const checkRateLimit = async (): Promise<RateLimitResponse> => {
-  try {
-    const response = await fetch(
-      'https://api.github.com/rate_limit',
-      {
-        headers: {
-          Accept: 'application/vnd.github.v3+json',
-          Authorization: `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      const error = data as GitHubError;
-      console.error('Rate Limit API Error:', error);
-      throw new Error(error.message || 'Failed to check rate limit');
-    }
-
-    console.log('Rate limit info:', {
-      remaining: data.resources.core.remaining,
-      reset: new Date(data.resources.core.reset * 1000).toLocaleTimeString(),
+    const response = await githubApi.get<SearchResponse>('/search/users', {
+      params: {
+        q: query,
+        sort: 'followers',
+        order: 'desc',
+        per_page: 10,
+      },
     });
 
-    return data as RateLimitResponse;
+    return response.data.items;
   } catch (error) {
-    console.error('Error checking rate limit:', error);
-    if (error instanceof Error) {
-      throw new Error(`Rate Limit Error: ${error.message}`);
-    }
-    throw new Error('An unexpected error occurred while checking rate limit');
+    console.error('Failed to search GitHub users:', error);
+    throw new Error('Failed to search for candidates');
   }
 };
 
-export { searchGithub, searchGithubUser, checkRateLimit };
-export type { GitHubUser, GitHubError, RateLimitResponse };
+// Get detailed user information
+const searchGithubUser = async (username: string): Promise<GitHubUser> => {
+  try {
+    const response = await githubApi.get<GitHubUser>(`/users/${username}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch user ${username}:`, error);
+    throw new Error(`Failed to fetch user details for ${username}`);
+  }
+};
+
+// Get user repositories
+const getGithubRepos = async (username: string): Promise<Repository[]> => {
+  try {
+    const response = await githubApi.get<Repository[]>(`/users/${username}/repos`, {
+      params: {
+        sort: 'stars',
+        direction: 'desc',
+        per_page: 5,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch repos for ${username}:`, error);
+    throw new Error(`Failed to fetch repositories for ${username}`);
+  }
+};
+
+// Get user's recent activity
+const getUserActivity = async (username: string) => {
+  try {
+    const response = await githubApi.get(`/users/${username}/events/public`, {
+      params: {
+        per_page: 10,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch activity for ${username}:`, error);
+    throw new Error(`Failed to fetch recent activity for ${username}`);
+  }
+};
+
+export {
+  checkRateLimit,
+  searchGithub,
+  searchGithubUser,
+  getGithubRepos,
+  getUserActivity,
+};

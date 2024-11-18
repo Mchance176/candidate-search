@@ -1,30 +1,13 @@
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { CandidateProvider } from './context/CandidateContext';
+import { SearchHistoryProvider } from './context/SearchHistoryContext';
+import App from './App';
 import './index.css';
 
-import App from './App.tsx';
-import CandidateSearch from './pages/CandidateSearch.tsx';
-import SavedCandidates from './pages/SavedCandidates.tsx';
-import ErrorPage from './pages/ErrorPage.tsx';
-
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <App />,
-    errorElement: <ErrorPage />,
-    children: [
-      {
-        index: true,
-        element: <CandidateSearch />,
-      },
-      {
-        path: 'saved',  // Changed from '/SavedCandidates' to 'saved'
-        element: <SavedCandidates />,
-      },
-    ],
-  },
-]);
-
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <RouterProvider router={router} />
+  <SearchHistoryProvider>
+    <CandidateProvider>
+      <App />
+    </CandidateProvider>
+  </SearchHistoryProvider>
 );

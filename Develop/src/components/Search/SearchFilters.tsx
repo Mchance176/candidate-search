@@ -1,71 +1,104 @@
-interface SearchFiltersProps {
-    onFilterChange: (filters: {
-      minRepos?: number;
-      minFollowers?: number;
-      location?: string;
-    }) => void;
-  }
-  
-  const SearchFilters = ({ onFilterChange }: SearchFiltersProps) => {
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const formData = new FormData(e.currentTarget);
-      onFilterChange({
-        minRepos: formData.get('minRepos') ? Number(formData.get('minRepos')) : undefined,
-        minFollowers: formData.get('minFollowers') ? Number(formData.get('minFollowers')) : undefined,
-        location: formData.get('location')?.toString() || undefined,
-      });
+import { useState } from 'react';
+import type { FilterOptions } from '../../interfaces/github.types';
+
+const SearchFilters = ({ onFilterChange }: { onFilterChange: (filters: FilterOptions) => void }) => {
+  const [filters, setFilters] = useState<FilterOptions>({
+    minRepos: 0,
+    minFollowers: 0,
+    location: '',
+    language: '',
+    availableForHire: false
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : type === 'number' ? Number(value) : value;
+    
+    const updatedFilters = {
+      ...filters,
+      [name]: newValue
     };
-  
-    return (
-      <form onSubmit={handleSubmit} className="mb-6 bg-white p-4 rounded-lg shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="minRepos" className="block text-sm font-medium text-gray-700">
-              Min Repositories
-            </label>
+    
+    setFilters(updatedFilters);
+    onFilterChange(updatedFilters);
+  };
+
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
+      <h2 className="text-lg font-semibold mb-4">Filter Candidates</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Minimum Repositories
             <input
               type="number"
               name="minRepos"
-              id="minRepos"
-              min="0"
+              value={filters.minRepos}
+              onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              min="0"
             />
-          </div>
-          <div>
-            <label htmlFor="minFollowers" className="block text-sm font-medium text-gray-700">
-              Min Followers
-            </label>
+          </label>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Minimum Followers
             <input
               type="number"
               name="minFollowers"
-              id="minFollowers"
-              min="0"
+              value={filters.minFollowers}
+              onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              min="0"
             />
-          </div>
-          <div>
-            <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-              Location
-            </label>
+          </label>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Location
             <input
               type="text"
               name="location"
-              id="location"
+              value={filters.location}
+              onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="e.g., San Francisco"
             />
-          </div>
+          </label>
         </div>
-        <div className="mt-4">
-          <button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition-colors duration-200"
-          >
-            Apply Filters
-          </button>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Primary Language
+            <input
+              type="text"
+              name="language"
+              value={filters.language}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="e.g., JavaScript"
+            />
+          </label>
         </div>
-      </form>
-    );
-  };
-  
-  export default SearchFilters;
+
+        <div className="col-span-2">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              name="availableForHire"
+              checked={filters.availableForHire}
+              onChange={handleChange}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm font-medium text-gray-700">Available for Hire</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SearchFilters;
