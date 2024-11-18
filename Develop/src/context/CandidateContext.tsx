@@ -1,48 +1,79 @@
-import React, { createContext, useState, useContext } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { GitHubUser } from '../api/API';
 
-interface Candidate {
-  id: number;
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  name?: string;
-  bio?: string;
-  public_repos: number;
-  followers: number;
-  location?: string;
-}
-
+// Define context interface
 interface CandidateContextType {
-  savedCandidates: Candidate[];
-  saveCandidate: (candidate: Candidate) => void;
-  removeCandidate: (id: number) => void;
+  savedCandidates: GitHubUser[];
+  saveCandidate: (candidate: GitHubUser) => void;
+  removeSavedCandidate: (id: number) => void;
 }
 
+// Create context
 const CandidateContext = createContext<CandidateContextType | undefined>(undefined);
 
-export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [savedCandidates, setSavedCandidates] = useState<Candidate[]>([]);
+// Storage key constant
+const STORAGE_KEY = 'savedCandidates';
 
-  const saveCandidate = (candidate: Candidate) => {
+// Provider component
+export const CandidateProvider = ({ children }: { children: React.ReactNode }) => {
+  // Initialize state with data from localStorage
+  const [savedCandidates, setSavedCandidates] = useState<GitHubUser[]>(() => {
+    try {
+      // Try to get saved candidates from localStorage
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Error loading saved candidates:', error);
+      return [];
+    }
+  });
+
+  // Update localStorage whenever savedCandidates changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedCandidates));
+    } catch (error) {
+      console.error('Error saving candidates:', error);
+    }
+  }, [savedCandidates]);
+
+  // Save a new candidate
+  const saveCandidate = (candidate: GitHubUser) => {
     setSavedCandidates(prev => {
-      if (!prev.some(c => c.id === candidate.id)) {
-        return [...prev, candidate];
+      // Check if candidate is already saved
+      if (prev.some(saved => saved.id === candidate.id)) {
+        console.log('Candidate already saved:', candidate.login);
+        return prev;
       }
-      return prev;
+      // Add new candidate to the list
+      console.log('Saving candidate:', candidate.login);
+      return [...prev, candidate];
     });
   };
 
-  const removeCandidate = (id: number) => {
-    setSavedCandidates(prev => prev.filter(c => c.id !== id));
+  // Remove a candidate
+  const removeSavedCandidate = (id: number) => {
+    setSavedCandidates(prev => {
+      console.log('Removing candidate with ID:', id);
+      return prev.filter(candidate => candidate.id !== id);
+    });
+  };
+
+  // Context value
+  const value = {
+    savedCandidates,
+    saveCandidate,
+    removeSavedCandidate,
   };
 
   return (
-    <CandidateContext.Provider value={{ savedCandidates, saveCandidate, removeCandidate }}>
+    <CandidateContext.Provider value={value}>
       {children}
     </CandidateContext.Provider>
   );
 };
 
+// Custom hook for using the context
 export const useCandidateContext = () => {
   const context = useContext(CandidateContext);
   if (context === undefined) {
@@ -50,5 +81,3 @@ export const useCandidateContext = () => {
   }
   return context;
 };
-
-export default CandidateContext;

@@ -8,7 +8,9 @@ const Nav = () => {
           <NavLink 
             to="/"
             className={({ isActive }) => 
-              `px-3 py-2 rounded-md ${isActive ? 'bg-blue-500 text-white' : 'text-gray-600 hover:text-gray-900'}`
+              isActive 
+                ? 'px-3 py-2 rounded-md bg-blue-500 text-white' 
+                : 'px-3 py-2 rounded-md text-gray-600 hover:text-gray-900'
             }
           >
             Search Candidates
@@ -18,7 +20,9 @@ const Nav = () => {
           <NavLink 
             to="/saved"
             className={({ isActive }) => 
-              `px-3 py-2 rounded-md ${isActive ? 'bg-blue-500 text-white' : 'text-gray-600 hover:text-gray-900'}`
+              isActive 
+                ? 'px-3 py-2 rounded-md bg-blue-500 text-white' 
+                : 'px-3 py-2 rounded-md text-gray-600 hover:text-gray-900'
             }
           >
             Saved Candidates
