@@ -1,10 +1,12 @@
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { CandidateProvider } from './context/CandidateContext';
 import CandidateSearch from './pages/CandidateSearch';
 import SavedCandidates from './pages/SavedCandidates';
 import ErrorPage from './pages/ErrorPage';
 import Layout from './components/Layout/Layout';
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import ErrorFallback from './components/ErrorBoundary/ErrorFallback';
+import PersistenceCheck from './components/PersistenceCheck';
 
 // Define routes with error handling
 const router = createBrowserRouter([
@@ -44,7 +46,14 @@ function App() {
         />
       }
     >
-      <RouterProvider router={router} />
+      {/* Provide candidate context to entire app */}
+      <CandidateProvider>
+        {/* Router setup */}
+        <RouterProvider router={router} />
+        
+        {/* Storage persistence check */}
+        <PersistenceCheck />
+      </CandidateProvider>
     </ErrorBoundary>
   );
 }
