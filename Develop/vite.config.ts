@@ -8,15 +8,14 @@ export default defineConfig({
     port: 5173,
     open: true
   },
-  base: '/',
+  base: '/candidate-search/', // Changed from '/' to '/candidate-search/'
   css: {
     postcss: './postcss.config.cjs'
   },
-  // Add build configuration
+  // Build configuration
   build: {
     outDir: 'dist',
     sourcemap: true,
-    // Add chunk size warning limit
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
       output: {
