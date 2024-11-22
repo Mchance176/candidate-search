@@ -1,44 +1,79 @@
-const searchGithub = async () => {
+// Custom error type for rate limits
+interface RateLimitError extends Error {
+  resetTime: Date;
+}
+
+// GitHub API types
+interface GitHubSearchResponse {
+  items: GitHubUser[];
+  total_count: number;
+}
+
+interface FilterOptions {
+  location?: string;
+  minRepos?: number;
+  availableForHire?: boolean;
+}
+
+// Check GitHub API rate limit
+export const checkRateLimit = async () => {
+  const response = await fetch('https://api.github.com/rate_limit', {
+    headers: {
+      Authorization: `token ${import.meta.env.VITE_GITHUB_TOKEN}`,
+    },
+  });
+  return response.json();
+};
+
+// Search GitHub users with filters
+export const searchGithub = async (filters: FilterOptions = {}) => {
   try {
-    const start = Math.floor(Math.random() * 100000000) + 1;
-    // console.log(import.meta.env);
+    // Check rate limit before search
+    const rateLimit = await checkRateLimit();
+    if (rateLimit.resources.core.remaining < 1) {
+      const resetTime = new Date(rateLimit.resources.core.reset * 1000);
+      const error = new Error('GitHub API rate limit exceeded') as RateLimitError;
+      error.resetTime = resetTime;
+      throw error;
+    }
+
+    // Build query string
+    let query = 'type:user';
+    if (filters.location) query += ` location:${filters.location}`;
+    if (filters.minRepos) query += ` repos:>=${filters.minRepos}`;
+
+    // Make API request
     const response = await fetch(
-      `https://api.github.com/users?since=${start}`,
+      `https://api.github.com/search/users?q=${encodeURIComponent(query)}&per_page=100`,
       {
         headers: {
-          Authorization: `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
+          Authorization: `token ${import.meta.env.VITE_GITHUB_TOKEN}`,
         },
       }
     );
-    // console.log('Response:', response);
-    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error('invalid API response, check the network tab');
+      throw new Error('Failed to fetch users');
     }
-    // console.log('Data:', data);
-    return data;
-  } catch (err) {
-    // console.log('an error occurred', err);
-    return [];
+
+    const data: GitHubSearchResponse = await response.json();
+    return data.items;
+  } catch (error) {
+    throw error;
   }
 };
 
-const searchGithubUser = async (username: string) => {
-  try {
-    const response = await fetch(`https://api.github.com/users/${username}`, {
-      headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-      },
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error('invalid API response, check the network tab');
-    }
-    return data;
-  } catch (err) {
-    // console.log('an error occurred', err);
-    return {};
-  }
-};
+// Get detailed user info
+export const searchGithubUser = async (username: string): Promise<GitHubUser> => {
+  const response = await fetch(`https://api.github.com/users/${username}`, {
+    headers: {
+      Authorization: `token ${import.meta.env.VITE_GITHUB_TOKEN}`,
+    },
+  });
 
-export { searchGithub, searchGithubUser };
+  if (!response.ok) {
+    throw new Error('Failed to fetch user details');
+  }
+
+  return response.json();
+};
