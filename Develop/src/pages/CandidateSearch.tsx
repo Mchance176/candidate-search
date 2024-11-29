@@ -12,7 +12,7 @@ import SearchHistory from '../components/Search/SearchHistory';
 import ErrorBoundary from '../components/ErrorBoundary/ErrorBoundary';
 
 const CandidateSearch = () => {
-  // State management
+  // State for managing the current candidate and UI state
   const [currentCandidate, setCurrentCandidate] = useState<GitHubUser | null>(null);
   const [currentFilters, setCurrentFilters] = useState<FilterOptions>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -20,16 +20,17 @@ const CandidateSearch = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [currentSearchId, setCurrentSearchId] = useState<string>('');
   const [noMoreCandidates, setNoMoreCandidates] = useState(false);
-  // Context hooks
+
+  // Get context functions
   const { saveCandidate } = useCandidateContext();
   const { addToHistory, updateSavedCandidate } = useSearchHistory();
 
-  // Load initial candidate on mount
+  // Load initial candidate when component mounts
   useEffect(() => {
     fetchNextCandidate();
   }, []);
 
-  // Fetch next candidate with rate limit check
+  // Fetch the next candidate from GitHub
   const fetchNextCandidate = async () => {
     setIsLoading(true);
     setError(null);
@@ -40,7 +41,7 @@ const CandidateSearch = () => {
       const rateLimit = await checkRateLimit();
       if (rateLimit.resources.core.remaining < 1) {
         const resetTime = new Date(rateLimit.resources.core.reset * 1000).toLocaleTimeString();
-        throw new Error(`Rate limit exceeded. Resets at ${resetTime}`);
+        throw new Error(`GitHub API rate limit exceeded. Resets at ${resetTime}`);
       }
 
       // Search for users with current filters
@@ -49,12 +50,10 @@ const CandidateSearch = () => {
         setNoMoreCandidates(true);
         setCurrentCandidate(null);
         return;
-      
       }
 
-      // Get detailed user info for first valid candidate
+      // Get detailed info for the first valid user
       let userDetails = null;
-      let validUserFound = false;
       for (const user of users) {
         try {
           userDetails = await searchGithubUser(user.login);
@@ -83,25 +82,31 @@ const CandidateSearch = () => {
     }
   };
 
-  // Handle filter changes
+  // Handle filter changes from SearchFilters component
   const handleFilterChange = (filters: FilterOptions) => {
     setCurrentFilters(filters);
     fetchNextCandidate();
   };
 
-  // Handle saving a candidate
-  const handleSaveCandidate = (candidate: GitHubUser) => {
-    saveCandidate(candidate);
-    updateSavedCandidate(currentSearchId, candidate.login);
-    fetchNextCandidate();
+  // Handle saving the current candidate
+  const handleSaveCandidate = () => {
+    if (!currentCandidate) return;
+    
+    try {
+      saveCandidate(currentCandidate);
+      updateSavedCandidate(currentSearchId, currentCandidate.login);
+      fetchNextCandidate();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save candidate');
+    }
   };
 
-  // Handle skipping a candidate
+  // Skip current candidate and fetch next
   const handleSkipCandidate = () => {
     fetchNextCandidate();
   };
 
-  // Render loading state
+  // Show loading spinner while fetching
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -113,7 +118,7 @@ const CandidateSearch = () => {
     );
   }
 
-  // Render error state
+  // Show error message if something went wrong
   if (error) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -123,22 +128,23 @@ const CandidateSearch = () => {
     );
   }
 
-  // Main render
+  // Main component render
   return (
     <ErrorBoundary>
       <div className="max-w-4xl mx-auto">
-        {/* Header with Search History */}
+        {/* Header section */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Find Candidates</h1>
           <SearchHistory />
         </div>
 
-        {/* Search Filters */}
+        {/* Search filters section */}
         <SearchFilters onFilterChange={handleFilterChange} />
 
-        {/* Candidate Display */}
+        {/* Candidate display section */}
         <div className="mt-8">
           {noMoreCandidates ? (
+            // Show message when no candidates found
             <div className="text-center py-8 bg-white rounded-lg shadow-sm">
               <svg
                 className="mx-auto h-12 w-12 text-gray-400"
@@ -170,6 +176,7 @@ const CandidateSearch = () => {
               </div>
             </div>
           ) : currentCandidate ? (
+            // Show candidate card if we have a candidate
             <div className="space-y-4">
               <CandidateCard 
                 candidate={currentCandidate}
@@ -186,6 +193,7 @@ const CandidateSearch = () => {
               </button>
             </div>
           ) : (
+            // Show initial state when no search has been performed
             <div className="text-center py-8">
               <p className="text-gray-600 mb-4">Start your candidate search</p>
               <button
@@ -198,7 +206,7 @@ const CandidateSearch = () => {
           )}
         </div>
 
-        {/* Candidate Details Modal */}
+        {/* Candidate details modal */}
         {showDetails && currentCandidate && (
           <CandidateDetails
             candidate={currentCandidate}

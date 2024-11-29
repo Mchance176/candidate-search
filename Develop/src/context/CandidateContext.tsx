@@ -1,66 +1,53 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import type { GitHubUser } from '../interfaces/github.types';
 
 interface CandidateContextType {
   savedCandidates: GitHubUser[];
-  addCandidate: (candidate: GitHubUser) => void;
-  removeCandidate: (candidate: GitHubUser) => void;
+  saveCandidate: (candidate: GitHubUser) => void;
+  removeCandidate: (candidateId: number) => void;
 }
 
 const CandidateContext = createContext<CandidateContextType | undefined>(undefined);
 
-export const CandidateProvider = ({ children }: { children: React.ReactNode }) => {
-  // Initialize state from localStorage
+export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [savedCandidates, setSavedCandidates] = useState<GitHubUser[]>(() => {
     const saved = localStorage.getItem('savedCandidates');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        console.log('Loaded saved candidates:', parsed.length);
-        return parsed;
-      } catch (e) {
-        console.error('Error loading saved candidates:', e);
-        return [];
-      }
-    }
-    return [];
+    return saved ? JSON.parse(saved) : [];
   });
 
-  // Save to localStorage on changes
-  useEffect(() => {
-    try {
-      localStorage.setItem('savedCandidates', JSON.stringify(savedCandidates));
-      console.log('Saved candidates to localStorage:', savedCandidates.length);
-    } catch (e) {
-      console.error('Error saving candidates:', e);
-    }
-  }, [savedCandidates]);
-
-  // Add candidate
-  const addCandidate = (candidate: GitHubUser) => {
+  const saveCandidate = useCallback((candidate: GitHubUser) => {
     setSavedCandidates(prev => {
-      if (prev.some(c => c.id === candidate.id)) return prev;
-      return [...prev, candidate];
+      const updated = [...prev, candidate];
+      localStorage.setItem('savedCandidates', JSON.stringify(updated));
+      return updated;
     });
-  };
+  }, []);
 
-  // Remove candidate
-  const removeCandidate = (candidate: GitHubUser) => {
-    setSavedCandidates(prev => prev.filter(c => c.id !== candidate.id));
+  const removeCandidate = useCallback((candidateId: number) => {
+    setSavedCandidates(prev => {
+      const updated = prev.filter(c => c.id !== candidateId);
+      localStorage.setItem('savedCandidates', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const value = {
+    savedCandidates,
+    saveCandidate,
+    removeCandidate
   };
 
   return (
-    <CandidateContext.Provider value={{ savedCandidates, addCandidate, removeCandidate }}>
+    <CandidateContext.Provider value={value}>
       {children}
     </CandidateContext.Provider>
   );
 };
 
-// Custom hook for using the context
 export const useCandidateContext = () => {
   const context = useContext(CandidateContext);
   if (context === undefined) {
     throw new Error('useCandidateContext must be used within a CandidateProvider');
   }
   return context;
-}; 
+};
