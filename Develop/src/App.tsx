@@ -8,7 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import ErrorFallback from './components/ErrorBoundary/ErrorFallback';
 import PersistenceCheck from './components/PersistenceCheck';
 
-// Define routes with error handling
+// Define routes with basename for Render deployment
 const router = createBrowserRouter([
   {
     path: '/',
@@ -30,14 +30,20 @@ const router = createBrowserRouter([
     ],
   },
 ], {
+  basename: import.meta.env.BASE_URL, // Add basename for production
   future: {
     v7_skipActionErrorRevalidation: true,
   },
 });
 
+// Add error logging
+const logError = (error: Error) => {
+  console.error('Application Error:', error);
+  // You could add more sophisticated error logging here
+};
+
 function App() {
   return (
-    // Wrap entire app in error boundary
     <ErrorBoundary
       fallback={
         <ErrorFallback 
@@ -45,13 +51,10 @@ function App() {
           resetErrorBoundary={() => window.location.reload()} 
         />
       }
+      onError={logError}
     >
-      {/* Provide candidate context to entire app */}
       <CandidateProvider>
-        {/* Router setup */}
         <RouterProvider router={router} />
-        
-        {/* Storage persistence check */}
         <PersistenceCheck />
       </CandidateProvider>
     </ErrorBoundary>

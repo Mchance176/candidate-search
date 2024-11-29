@@ -4,10 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GitHub Recruiter</title>
+    <meta name="description" content="GitHub Candidate Search - Find and manage potential GitHub candidates" />
+    <!-- Updated CSP to include Google Fonts -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self' https://api.github.com;
+      img-src 'self' https://avatars.githubusercontent.com data: https://*.githubusercontent.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      script-src 'self' 'unsafe-eval';
+      connect-src 'self' https://api.github.com;
+    ">
+    <title>GitHub Candidate Search</title>
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap">
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      You need to enable JavaScript to run this application.
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
