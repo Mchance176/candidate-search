@@ -1,18 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173,
-    open: true
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    host: true,
   },
-  base: '/candidate-search/', // Changed from '/' to '/candidate-search/'
+  preview: {
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    host: true,// Added for Render compatibility
+  },
+  base: '/', // Changed back to '/' for Render deployment
   css: {
     postcss: './postcss.config.cjs'
   },
-  // Build configuration
   build: {
     outDir: 'dist',
     sourcemap: true,
