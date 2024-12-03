@@ -1,99 +1,86 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import type { FilterOptions } from '../../interfaces/github.types';
 
-const SearchFilters = ({ onFilterChange }: { onFilterChange: (filters: FilterOptions) => void }) => {
+interface SearchFiltersProps {
+  onFilterChange: (filters: FilterOptions) => void;
+}
+
+const SearchFilters: React.FC<SearchFiltersProps> = ({ onFilterChange }) => {
   const [filters, setFilters] = useState<FilterOptions>({
-    minRepos: 0,
-    minFollowers: 0,
     location: '',
-    language: '',
+    minRepos: undefined,
     availableForHire: false
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : type === 'number' ? Number(value) : value;
     
+    // Handle different input types
+    const newValue = type === 'checkbox' 
+      ? checked 
+      : type === 'number' 
+        ? value === '' ? undefined : Number(value)
+        : value;
+
     const updatedFilters = {
       ...filters,
       [name]: newValue
     };
-    
+
     setFilters(updatedFilters);
     onFilterChange(updatedFilters);
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
-      <h2 className="text-lg font-semibold mb-4">Filter Candidates</h2>
+    <div className="bg-white p-4 rounded-lg shadow mb-6">
+      <h2 className="text-lg font-semibold mb-4">Search Filters</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
+        {/* Location Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Minimum Repositories
-            <input
-              type="number"
-              name="minRepos"
-              value={filters.minRepos}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              min="0"
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Minimum Followers
-            <input
-              type="number"
-              name="minFollowers"
-              value={filters.minFollowers}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              min="0"
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
             Location
-            <input
-              type="text"
-              name="location"
-              value={filters.location}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="e.g., San Francisco"
-            />
           </label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            value={filters.location || ''}
+            onChange={handleInputChange}
+            placeholder="e.g., San Francisco"
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
 
+        {/* Minimum Repositories Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Primary Language
-            <input
-              type="text"
-              name="language"
-              value={filters.language}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="e.g., JavaScript"
-            />
+          <label htmlFor="minRepos" className="block text-sm font-medium text-gray-700 mb-1">
+            Minimum Repositories
           </label>
+          <input
+            type="number"
+            id="minRepos"
+            name="minRepos"
+            value={filters.minRepos || ''}
+            onChange={handleInputChange}
+            min="0"
+            placeholder="e.g., 10"
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
 
-        <div className="col-span-2">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              name="availableForHire"
-              checked={filters.availableForHire}
-              onChange={handleChange}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="text-sm font-medium text-gray-700">Available for Hire</span>
+        {/* Available for Hire Filter */}
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="availableForHire"
+            name="availableForHire"
+            checked={filters.availableForHire || false}
+            onChange={handleInputChange}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label htmlFor="availableForHire" className="ml-2 block text-sm text-gray-700">
+            Available for Hire
           </label>
         </div>
       </div>
