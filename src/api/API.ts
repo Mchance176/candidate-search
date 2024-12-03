@@ -3,7 +3,6 @@ import type {
   GitHubSearchResponse,
   FilterOptions,
   RateLimitResponse,
-  RateLimitError 
 } from '../interfaces/github.types';
 
 // Get token from environment
@@ -47,13 +46,22 @@ export const searchGithub = async (filters: FilterOptions = {}): Promise<GitHubU
   try {
     // Build query string
     const queryParts = ['type:user'];
-    if (filters.location) queryParts.push(`location:${filters.location}`);
-    if (filters.minRepos) queryParts.push(`repos:>=${filters.minRepos}`);
-    if (filters.availableForHire) queryParts.push('available_for_hire:true');
+    
+    if (filters.location) {
+      queryParts.push(`location:${filters.location}`);
+    }
+    
+    if (filters.minRepos !== undefined && filters.minRepos > 0) {
+      queryParts.push(`repos:>=${filters.minRepos}`);
+    }
+    
+    if (filters.availableForHire) {
+      queryParts.push('available_for_hire:true');
+    }
 
     const query = queryParts.join(' ');
+    console.log('Search query:', query); // For debugging
 
-    // Make API request
     const response = await fetch(
       `https://api.github.com/search/users?q=${encodeURIComponent(query)}&per_page=100`,
       { headers: getHeaders() }
