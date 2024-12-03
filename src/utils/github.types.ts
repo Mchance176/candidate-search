@@ -1,3 +1,18 @@
+import type { 
+  GitHubUser, 
+  GitHubSearchResponse,
+  FilterOptions,
+  RateLimitResponse
+} from '../interfaces/github.types';
+
+// Get token from environment
+const getToken = () => {
+  const token = import.meta.env.VITE_GITHUB_TOKEN;
+  if (!token) {
+    throw new Error('GitHub token is not configured. Please check your .env file.');
+  }
+  return token;
+};
 export interface GitHubUser {
   login: string;
   id: number;

@@ -1,14 +1,25 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "esModuleInterop": true,
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*", "Develop/src/components/ErrorMessage", "Develop/src/components/LoadingSpinner.tsx", "Develop/src/components/ErrorMessage.tsx", "Develop/src/components/CandidateStats.tsx", "Develop/src/utils/githubApi.ts", "Develop/src/components/Search.tsx", "Develop/src/components/TokenVerification.tsx", "Develop/src/components/TokenVerification/index.ts"],
-  "exclude": ["node_modules"]
-} 
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
