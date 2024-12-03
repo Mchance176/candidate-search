@@ -1,5 +1,5 @@
-import { GitHubUser } from '../../interfaces/github.types';
-import Badge from '../Badge/Badge';
+import { GitHubUser } from "../../interfaces/github.types";
+import Badge from "../Badge/Badge";
 
 interface CandidateCardProps {
   candidate: GitHubUser;
@@ -9,12 +9,12 @@ interface CandidateCardProps {
   onViewDetails?: () => void;
 }
 
-const CandidateCard = ({ 
-  candidate, 
-  onAction, 
-  actionLabel, 
+const CandidateCard = ({
+  candidate,
+  onAction,
+  actionLabel,
   actionStyle,
-  onViewDetails 
+  onViewDetails,
 }: CandidateCardProps) => {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
@@ -25,7 +25,7 @@ const CandidateCard = ({
           alt={`${candidate.login}'s avatar`}
           className="w-16 h-16 rounded-full"
         />
-        
+
         {/* Info */}
         <div className="flex-1">
           <div className="flex justify-between items-start">
@@ -39,13 +39,11 @@ const CandidateCard = ({
               <Badge color="green">Available for hire</Badge>
             )}
           </div>
-
-          <div>
           {candidate.company != null && (
-  <p className="text-gray-600">
-    <span className="font-medium">Company:</span> {candidate.company}
-  </p>
-)}
+            <p className="text-gray-600">
+              <span className="font-medium">Company:</span> {candidate.company}
+            </p>
+          )}
 
           {/* Location */}
           {candidate.location && (
