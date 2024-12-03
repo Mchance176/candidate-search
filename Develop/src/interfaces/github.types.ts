@@ -1,52 +1,48 @@
+// Base GitHub user interface
 export interface GitHubUser {
-  id: number;
   login: string;
-  name: string | null;
+  id: number;
+  node_id: string;
   avatar_url: string;
+  gravatar_id: string;
+  url: string;
   html_url: string;
-  bio: string | null;
+  followers_url: string;
+  following_url: string;
+  gists_url: string;
+  starred_url: string;
+  subscriptions_url: string;
+  organizations_url: string;
+  repos_url: string;
+  events_url: string;
+  received_events_url: string;
+  type: string;
+  site_admin: boolean;
+  name: string | null;
+  company: string | null;
+  blog: string | null;
   location: string | null;
   email: string | null;
+  hireable: boolean | null;
+  bio: string | null;
+  twitter_username: string | null;
   public_repos: number;
+  public_gists: number;
   followers: number;
   following: number;
   created_at: string;
   updated_at: string;
-  hireable: boolean | null;
 }
 
-export interface Repository {
-  id: number;
-  name: string;
-  full_name: string;
-  html_url: string;
-  description: string | null;
-  fork: boolean;
-  created_at: string;
-  updated_at: string;
-  pushed_at: string;
-  homepage: string | null;
-  size: number;
-  stargazers_count: number;
-  watchers_count: number;
-  language: string | null;
-  forks_count: number;
-  archived: boolean;
-  disabled: boolean;
-  license: {
-    key: string;
-    name: string;
-    url: string;
-  } | null;
-}
-
-export interface SearchResponse {
+// Search response interface
+export interface GitHubSearchResponse {
   total_count: number;
   incomplete_results: boolean;
   items: GitHubUser[];
 }
 
-export interface RateLimit {
+// Rate limit response interface
+export interface RateLimitResponse {
   resources: {
     core: {
       limit: number;
@@ -59,12 +55,21 @@ export interface RateLimit {
       reset: number;
     };
   };
+  rate: {
+    limit: number;
+    remaining: number;
+    reset: number;
+  };
 }
 
+// Rate limit error interface
+export interface RateLimitError extends Error {
+  resetTime: Date;
+}
+
+// Filter options interface
 export interface FilterOptions {
-  minRepos?: number;
-  minFollowers?: number;
   location?: string;
-  language?: string;
+  minRepos?: number;
   availableForHire?: boolean;
 }

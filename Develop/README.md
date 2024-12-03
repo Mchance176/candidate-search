@@ -17,7 +17,7 @@ If you're developing a production application, we recommend updating the configu
 export default {
   // other rules...
   parserOptions: {
-    ecmaVersion: 'latest',
+    ecmaVersion: ,
     sourceType: 'module',
     project: ['./tsconfig.json', './tsconfig.node.json'],
     tsconfigRootDir: __dirname,

@@ -1,9 +1,9 @@
 import type { 
-  RateLimitError, 
   GitHubUser, 
-  GitHubSearchResponse, 
+  GitHubSearchResponse,
   FilterOptions,
-  RateLimitResponse 
+  RateLimitResponse,
+  RateLimitError 
 } from '../interfaces/github.types';
 
 // Get token from environment

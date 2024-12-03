@@ -35,7 +35,7 @@ const SavedCandidates = () => {
 
   // Handle removing a candidate
   const handleRemoveCandidate = (candidate: GitHubUser) => {
-    removeCandidate(candidate);
+    removeCandidate(candidate.id);
   };
 
   return (
